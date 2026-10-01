@@ -1,7 +1,7 @@
 !include MUI2.nsh
 
 !define APP_NAME "Rune Haven"
-!define APP_VERSION "0.17.4"
+!define APP_VERSION "0.17.5"
 !define APP_EXE "Rune Haven.exe"
 !define APP_ICON "client\assets\icons\logo.ico"
 
