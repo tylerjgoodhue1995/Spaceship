@@ -36,7 +36,7 @@ pub const GITHUB_MERGED_PR_URL: &str =
     "https://github.com/tylerjgoodhue1995/Rune-Haven/pulls?q=is%3Apr+is%3Amerged";
 
 pub const AIRSHIPPER_RELEASE_URL: &str =
-    "https://github.com/tylerjgoodhue1995/Rune-Haven/releases";
+    "https://github.com/tylerjgoodhue1995/Spaceship/releases";
 
 pub const OFFICIAL_AUTH_SERVER: &str = "https://auth.veloren.net";
 

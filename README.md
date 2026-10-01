@@ -1,8 +1,8 @@
 # Airshipper
 
 [![Discord](https://img.shields.io/discord/449602562165833758?logo=discord&logoColor=%23f8f8f8&label=discord&color=%23788dd5)](https://veloren.net/discord)
-[![License](https://img.shields.io/github/license/tylerjgoodhue1995/Rune-Haven?color=blue)](https://github.com/tylerjgoodhue1995/Rune-Haven/blob/release/0.18.2/airshipper/LICENSE)
-[![GitHub Release](https://img.shields.io/github/v/release/tylerjgoodhue1995/Rune-Haven?color=blue)](https://github.com/tylerjgoodhue1995/Rune-Haven/releases)
+[![License](https://img.shields.io/github/license/tylerjgoodhue1995/Spaceship?color=blue)](https://github.com/tylerjgoodhue1995/Spaceship/blob/main/LICENSE)
+[![GitHub Release](https://img.shields.io/github/v/release/tylerjgoodhue1995/Spaceship?color=blue)](https://github.com/tylerjgoodhue1995/Spaceship/releases)
 [![AUR version](https://img.shields.io/aur/version/airshipper?label=AUR)](https://aur.archlinux.org/packages/airshipper/)
 
 A cross-platform Veloren launcher.
@@ -26,8 +26,8 @@ For *source* packages **do not** use the `master` branch. Always package latest 
 #### Compile from source
 
 ```bash
-git clone https://github.com/tylerjgoodhue1995/Rune-Haven.git
-cd airshipper
+git clone https://github.com/tylerjgoodhue1995/Spaceship.git
+cd Spaceship
 cargo run --release
 ```
 
@@ -37,8 +37,8 @@ Make sure to have [rustup](https://rustup.rs/) installed to compile rust code an
 
 You can install Airshipper with:
 
-- Flakes enabled Nix: `nix profile install github:tylerjgoodhue1995/Rune-Haven?dir=airshipper`
-- Flakes disabled Nix: `nix-env -i -f airshipper/default.nix` from the repository root
+- Flakes enabled Nix: `nix profile install github:tylerjgoodhue1995/Spaceship`
+- Flakes disabled Nix: `nix-env -i -f "https://github.com/tylerjgoodhue1995/Spaceship/archive/refs/heads/main.tar.gz"`
 
 ## Code of conduct
 

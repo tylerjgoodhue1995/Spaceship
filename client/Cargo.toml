@@ -8,8 +8,8 @@ default-run = "airshipper"
 exclude = ["assets/fonts/GoNotoCurrent.ttf"]
 
 license = "GPL-3.0"
-homepage = "https://github.com/tylerjgoodhue1995/Rune-Haven"
-repository = "https://github.com/tylerjgoodhue1995/Rune-Haven/tree/release/0.18.2/airshipper"
+homepage = "https://github.com/tylerjgoodhue1995/Spaceship"
+repository = "https://github.com/tylerjgoodhue1995/Spaceship"
 
 [package.metadata.nix]
 build = true

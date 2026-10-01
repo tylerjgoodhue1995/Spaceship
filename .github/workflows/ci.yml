@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "**"
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: nightly-2026-06-13
+          components: rustfmt
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: .
+      - name: Check formatting
+        run: cargo fmt --all --check
+      - name: Check launcher
+        run: cargo check -p airshipper --features runehaven
