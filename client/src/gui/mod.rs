@@ -76,7 +76,7 @@ pub enum Message {
 
 impl Airshipper {
     fn title(&self) -> String {
-        format!("Airshipper v{}", env!("CARGO_PKG_VERSION"))
+        format!("Rune Haven v{}", env!("CARGO_PKG_VERSION"))
     }
 
     fn update(&mut self, message: Message) -> Task<Message> {

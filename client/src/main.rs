@@ -1,3 +1,5 @@
+#![cfg_attr(all(windows, feature = "runehaven"), windows_subsystem = "windows")]
+
 mod assets;
 mod channels;
 mod cli;

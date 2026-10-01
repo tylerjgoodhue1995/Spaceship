@@ -37,19 +37,20 @@ jobs:
         shell: bash
         run: |
           set -eux
-          stage="airshipper-${{ matrix.name }}"
+          stage="rune-haven-${{ matrix.name }}"
+          package="rune-haven-${{ matrix.name }}.zip"
           mkdir -p "$stage"
-          cp target/release/airshipper${{ matrix.ext }} "$stage/"
+          cp target/release/airshipper${{ matrix.ext }} "$stage/Rune Haven${{ matrix.ext }}"
           if [ "${{ runner.os }}" = "Windows" ]; then
-            (cd "$stage" && 7z a "../$stage.zip" *)
+            (cd "$stage" && 7z a "../$package" *)
           else
-            (cd "$stage" && zip -r "../$stage.zip" *)
+            (cd "$stage" && zip -r "../$package" *)
           fi
 
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
-          path: airshipper-${{ matrix.name }}.zip
+          path: rune-haven-${{ matrix.name }}.zip
 
   release:
     needs: build
