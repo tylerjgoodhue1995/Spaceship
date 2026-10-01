@@ -1,7 +1,7 @@
 !include MUI2.nsh
 
 !define APP_NAME "Rune Haven"
-!define APP_VERSION "0.17.6"
+!define APP_VERSION "0.17.7"
 !define APP_EXE "Rune Haven.exe"
 !define APP_ICON "..\assets\icons\logo.ico"
 
@@ -33,7 +33,7 @@ VIAddVersionKey "ProductVersion" "${APP_VERSION}"
 Section "Install"
     SetShellVarContext all
     SetOutPath "$INSTDIR"
-    File /oname="${APP_EXE}" "..\..\target\release\airshipper.exe"
+    File "..\..\Rune Haven.exe"
     WriteUninstaller "$INSTDIR\Uninstall.exe"
 
     CreateDirectory "$SMPROGRAMS\${APP_NAME}"

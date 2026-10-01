@@ -39,12 +39,14 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           choco install nsis --yes --no-progress
+          Copy-Item target/release/airshipper.exe "Rune Haven.exe"
           Push-Location client/nsis
           & "${env:ProgramFiles(x86)}\NSIS\makensis.exe" runehaven.nsi
           $result = $LASTEXITCODE
           Pop-Location
           if ($result -ne 0) { exit $result }
           Move-Item "client/nsis/Rune Haven Setup.exe" "Rune Haven Setup.exe"
+          Remove-Item "Rune Haven.exe"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Package Rune Haven
