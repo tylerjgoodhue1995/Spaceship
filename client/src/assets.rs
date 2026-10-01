@@ -24,13 +24,7 @@ pub const GLOBE_ICON: &[u8] = include_bytes!("../assets/icons/globe.png");
 pub const KEY_ICON: &[u8] = include_bytes!("../assets/icons/key.png");
 
 // Fonts
-/// A font to be used for text that can be used to display user provided text such as
-/// those within the server browser panel.
-#[cfg(not(feature = "bundled_font"))]
-pub const UNIVERSAL_FONT: Font = Font::DEFAULT;
-
-#[cfg(feature = "bundled_font")]
-pub const UNIVERSAL_FONT: Font = Font::with_name("Go Noto Current");
+/// A font for displaying user-provided text.
 #[cfg(feature = "bundled_font")]
 pub const UNIVERSAL_FONT_BYTES: &[u8] =
     include_bytes!("../assets/fonts/GoNotoCurrent.ttf");

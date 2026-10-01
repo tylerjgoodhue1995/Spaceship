@@ -424,7 +424,7 @@ impl Profile {
         cmd.current_dir(profile.directory());
         cmd.envs(envs);
 
-        // If a server is selected in the server browser pass it through to Voxygen
+        // The optional server address is used by the command-line launcher.
         if let Some(game_server_address) = game_server_address {
             cmd.args(["--server", game_server_address]);
         }

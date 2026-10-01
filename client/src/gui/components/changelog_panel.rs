@@ -1,9 +1,8 @@
 use crate::{
     Result,
     assets::{POPPINS_BOLD_FONT, POPPINS_LIGHT_FONT, POPPINS_MEDIUM_FONT},
-    channels::Channel,
     consts,
-    consts::GITHUB_MERGED_PR_URL,
+    consts::RUNEHAVEN_RELEASES_URL,
     gui::{
         style,
         views::default::{DefaultViewMessage, Interaction},
@@ -27,9 +26,17 @@ use tracing::debug;
 #[derive(Clone, Debug)]
 pub enum ChangelogPanelMessage {
     ScrollPositionChanged(f32),
-    LoadChangelog(Result<ChangelogPanelComponent>, Channel),
+    LoadChangelog(Result<ChangelogPanelComponent>),
     UpdateChangelog(Result<Option<ChangelogPanelComponent>>),
     SaveChangelog,
+}
+
+#[derive(Deserialize)]
+struct GithubRelease {
+    tag_name: String,
+    body: Option<String>,
+    draft: bool,
+    prerelease: bool,
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
@@ -48,14 +55,32 @@ pub fn default_display_count() -> usize {
 
 impl ChangelogPanelComponent {
     #[allow(clippy::while_let_on_iterator)]
-    async fn fetch(channel: Channel) -> Result<Option<Self>> {
+    async fn fetch() -> Result<Option<Self>> {
         let mut versions: Vec<ChangelogVersion> = Vec::new();
 
-        let changelog =
-            net::query(consts::CHANGELOG_URL.replace("{tag}", &channel.0)).await?;
-        let etag = net::get_etag(&changelog);
-
-        let changelog_text = changelog.text().await?;
+        let response = net::query(consts::GITHUB_RELEASES_API_URL).await?;
+        let etag = net::get_etag(&response);
+        let releases = response.json::<Vec<GithubRelease>>().await?;
+        let changelog_text = releases
+            .into_iter()
+            .filter(|release| !release.draft && !release.prerelease)
+            .filter_map(|release| {
+                let body = release.body?;
+                let body = body
+                    .lines()
+                    .map(|line| {
+                        if line.starts_with("#") {
+                            format!("### {}", line.trim_start_matches('#').trim())
+                        } else {
+                            line.to_owned()
+                        }
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n");
+                Some(format!("## {}\n{}", release.tag_name, body))
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
         let options = Options::empty();
         let mut parser = Parser::new_ext(changelog_text.as_str(), options).peekable();
 
@@ -207,15 +232,15 @@ impl ChangelogPanelComponent {
     }
 
     /// Returns new Changelog in case remote one is newer
-    async fn update_changelog(version: String, channel: Channel) -> Result<Option<Self>> {
-        match net::query_etag(consts::CHANGELOG_URL.replace("{tag}", &channel.0)).await? {
+    async fn update_changelog(version: String) -> Result<Option<Self>> {
+        match net::query_etag(consts::GITHUB_RELEASES_API_URL).await? {
             Some(remote_version) => {
                 if version != remote_version {
                     debug!(
                         "Changelog version different (Local: {} Remote: {}), fetching...",
                         version, remote_version
                     );
-                    Self::fetch(channel).await
+                    Self::fetch().await
                 } else {
                     debug!("Changelog up-to-date.");
                     Ok(None)
@@ -225,7 +250,7 @@ impl ChangelogPanelComponent {
             // to make sure the player stays informed.
             None => {
                 debug!("Changelog remote version missing, fetching...");
-                Self::fetch(channel).await
+                Self::fetch().await
             },
         }
     }
@@ -256,11 +281,11 @@ impl ChangelogPanelComponent {
         msg: ChangelogPanelMessage,
     ) -> Option<Task<DefaultViewMessage>> {
         match msg {
-            ChangelogPanelMessage::LoadChangelog(result, channel) => match result {
+            ChangelogPanelMessage::LoadChangelog(result) => match result {
                 Ok(changelog) => {
                     *self = changelog;
                     Some(Task::perform(
-                        Self::update_changelog(self.etag.clone(), channel),
+                        Self::update_changelog(self.etag.clone()),
                         |update| {
                             DefaultViewMessage::ChangelogPanel(
                                 ChangelogPanelMessage::UpdateChangelog(update),
@@ -270,7 +295,7 @@ impl ChangelogPanelComponent {
                 },
                 Err(e) => {
                     tracing::trace!(?e, "Failed to load changelog");
-                    Some(Task::perform(Self::fetch(channel), |update| {
+                    Some(Task::perform(Self::fetch(), |update| {
                         DefaultViewMessage::ChangelogPanel(
                             ChangelogPanelMessage::UpdateChangelog(update),
                         )
@@ -335,7 +360,7 @@ impl ChangelogPanelComponent {
                         button(
                             row![]
                                 .push(
-                                    text("Recent Changes")
+                                    text("GitHub Releases")
                                         .style(style::text::light_grey)
                                         .size(10)
                                         .font(POPPINS_MEDIUM_FONT)
@@ -346,11 +371,11 @@ impl ChangelogPanelComponent {
                                 .align_y(Vertical::Center),
                         )
                         .on_press(DefaultViewMessage::Interaction(Interaction::OpenURL(
-                            GITHUB_MERGED_PR_URL.to_string(),
+                            RUNEHAVEN_RELEASES_URL.to_string(),
                         )))
                         .padding(Padding::ZERO.top(4).right(10).left(10))
                         .height(Length::Fixed(20.0))
-                        .style(style::button::browser_gitlab),
+                        .style(style::button::github_releases),
                     )
                     .padding(Padding::ZERO.right(10))
                     .height(Length::Fill)

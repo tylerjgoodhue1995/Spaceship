@@ -1,6 +1,6 @@
 use crate::gui::style::{
     AirshipperTheme, BACKGROUND_BLUE, BLOG_POST_BACKGROUND_BLUE, BRIGHT_ORANGE,
-    DARK_WHITE, LIGHT_GREY, LIME_GREEN, MEDIUM_GREY, NAVY_BLUE, VERY_DARK_GREY,
+    DARK_WHITE, LIGHT_GREY, MEDIUM_GREY, NAVY_BLUE, VERY_DARK_GREY,
 };
 use iced::{
     Border, Color,
@@ -63,25 +63,10 @@ pub fn sidepanel(_theme: &AirshipperTheme) -> Style {
     }
 }
 
-pub fn column_heading(_theme: &AirshipperTheme) -> Style {
-    Style {
-        text_color: Some(Color::WHITE),
-        ..Style::default()
-    }
-}
-
 pub fn changelog_header(_theme: &AirshipperTheme) -> Style {
     Style {
         background: Some(Color::BLACK.into()),
         text_color: Some(Color::WHITE),
-        ..Style::default()
-    }
-}
-
-pub fn extra_browser(_theme: &AirshipperTheme) -> Style {
-    Style {
-        background: Some(LIME_GREEN.into()),
-        border: Border::default().rounded(25.0),
         ..Style::default()
     }
 }

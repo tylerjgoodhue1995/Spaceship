@@ -1,6 +1,4 @@
-use crate::gui::style::{
-    AirshipperTheme, BRIGHT_ORANGE, DARK_WHITE, LIGHT_GREY, LILAC, TOMATO_RED,
-};
+use crate::gui::style::{AirshipperTheme, DARK_WHITE, LIGHT_GREY, LILAC};
 use iced::{
     Color,
     widget::text::{Catalog, Style, StyleFn},
@@ -32,14 +30,6 @@ pub fn dark(_theme: &AirshipperTheme) -> Style {
 
 pub fn light_grey(_theme: &AirshipperTheme) -> Style {
     text_appearance(LIGHT_GREY)
-}
-
-pub fn bright_orange(_theme: &AirshipperTheme) -> Style {
-    text_appearance(BRIGHT_ORANGE)
-}
-
-pub fn tomato_red(_theme: &AirshipperTheme) -> Style {
-    text_appearance(TOMATO_RED)
 }
 
 pub fn lilac(_theme: &AirshipperTheme) -> Style {

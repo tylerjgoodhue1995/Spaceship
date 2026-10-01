@@ -6,11 +6,10 @@ use crate::{
             ChangelogPanelComponent, ChangelogPanelMessage, CommunityShowcaseComponent,
             CommunityShowcasePanelMessage, GamePanelComponent, GamePanelMessage,
             LogoPanelComponent, NewsPanelComponent, NewsPanelMessage,
-            SERVER_BROWSER_PING_REFRESH, ServerBrowserPanelComponent,
-            ServerBrowserPanelMessage, SettingsPanelComponent, SettingsPanelMessage,
+            SettingsPanelComponent, SettingsPanelMessage,
         },
         rss_feed::RssFeedComponentMessage::UpdateRssFeed,
-        style, subscriptions,
+        style,
         views::Action,
         widget::*,
     },
@@ -34,9 +33,7 @@ pub struct DefaultView {
     game_panel_component: GamePanelComponent,
     news_panel_component: NewsPanelComponent,
     settings_panel_component: SettingsPanelComponent,
-    server_browser_panel_component: ServerBrowserPanelComponent,
     show_settings: bool,
-    show_server_browser: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -58,36 +55,19 @@ pub enum DefaultViewMessage {
     CommunityShowcasePanel(CommunityShowcasePanelMessage),
     NewsPanel(NewsPanelMessage),
     SettingsPanel(SettingsPanelMessage),
-    ServerBrowserPanel(ServerBrowserPanelMessage),
 }
 
 #[derive(Debug, Clone)]
 pub enum Interaction {
     SettingsPressed,
-    ToggleServerBrowser,
     OpenURL(String),
 }
 
 impl DefaultView {
     pub fn subscription(&self) -> iced::Subscription<DefaultViewMessage> {
-        iced::Subscription::batch(
-            IntoIterator::into_iter([
-                Some(
-                    self.game_panel_component
-                        .subscription()
-                        .map(DefaultViewMessage::GamePanel),
-                ),
-                self.show_server_browser.then_some(
-                    subscriptions::repeat_message::stream(
-                        SERVER_BROWSER_PING_REFRESH,
-                        DefaultViewMessage::ServerBrowserPanel(
-                            ServerBrowserPanelMessage::RefreshPing,
-                        ),
-                    ),
-                ),
-            ])
-            .flatten(),
-        )
+        self.game_panel_component
+            .subscription()
+            .map(DefaultViewMessage::GamePanel)
     }
 
     pub fn view<'a>(
@@ -102,7 +82,6 @@ impl DefaultView {
             community_showcase_component,
             game_panel_component,
             settings_panel_component,
-            server_browser_panel_component,
             ..
         } = self;
 
@@ -125,33 +104,21 @@ impl DefaultView {
         .width(Length::Fixed(360.0))
         .style(style::container::sidepanel);
 
-        let mut main_row = row![].push(left);
-
-        if !self.show_server_browser {
-            let middle = container(
-                column![]
-                    .push(
-                        container(announcement_panel_component.view())
-                            .height(Length::Shrink),
-                    )
-                    .push(
-                        container(changelog_panel_component.view()).height(Length::Fill),
-                    ),
-            )
+        let middle = container(
+            column![]
+                .push(
+                    container(announcement_panel_component.view()).height(Length::Shrink),
+                )
+                .push(container(changelog_panel_component.view()).height(Length::Fill)),
+        )
+        .height(Length::Fill)
+        .width(Length::Fill);
+        let right = container(news_panel_component.view())
             .height(Length::Fill)
-            .width(Length::Fill);
-            let right = container(news_panel_component.view())
-                .height(Length::Fill)
-                .width(Length::Fixed(248.0))
-                .style(style::container::sidepanel);
+            .width(Length::Fixed(248.0))
+            .style(style::container::sidepanel);
 
-            main_row = main_row.push(middle).push(right);
-        } else {
-            let server_browser = container(server_browser_panel_component.view())
-                .height(Length::Fill)
-                .width(Length::Fill);
-            main_row = main_row.push(server_browser);
-        }
+        let main_row = row![].push(left).push(middle).push(right);
 
         container(main_row)
             .width(Length::Fill)
@@ -169,7 +136,6 @@ impl DefaultView {
             // Will be handled by main view
             DefaultViewMessage::Action(_) => {},
             DefaultViewMessage::Query => {
-                let channel = active_profile.channel.clone();
                 let api_version_url = active_profile.api_version_url();
                 let announcement_url = active_profile.announcement_url();
                 return Task::batch(vec![
@@ -183,17 +149,9 @@ impl DefaultView {
                             ])
                         },
                     ),
-                    Task::perform(
-                        ChangelogPanelComponent::load_changelog(),
-                        move |update| {
-                            DefaultViewMessage::ChangelogPanel(
-                                ChangelogPanelMessage::LoadChangelog(update, channel),
-                            )
-                        },
-                    ),
-                    Task::perform(ServerBrowserPanelComponent::fetch(), |update| {
-                        DefaultViewMessage::ServerBrowserPanel(
-                            ServerBrowserPanelMessage::UpdateServerList(update),
+                    Task::perform(ChangelogPanelComponent::load_changelog(), |update| {
+                        DefaultViewMessage::ChangelogPanel(
+                            ChangelogPanelMessage::LoadChangelog(update),
                         )
                     }),
                     Task::perform(
@@ -272,12 +230,6 @@ impl DefaultView {
                     return command;
                 }
             },
-            DefaultViewMessage::ServerBrowserPanel(msg) => {
-                if let Some(command) = self.server_browser_panel_component.update(msg) {
-                    return command;
-                }
-            },
-
             #[cfg(windows)]
             DefaultViewMessage::LauncherUpdate(update) => {
                 if let Ok(Some(release)) = update {
@@ -292,19 +244,6 @@ impl DefaultView {
             DefaultViewMessage::Interaction(interaction) => match interaction {
                 Interaction::SettingsPressed => {
                     self.show_settings = !self.show_settings;
-                },
-                Interaction::ToggleServerBrowser => {
-                    self.show_server_browser = !self.show_server_browser;
-
-                    // If toggling the server browser panel resulted in it being hidden,
-                    // deselect the selected server to switch the
-                    // Launch button back to saying "Launch" instead of "Connect to
-                    // selected server"
-                    if !self.show_server_browser {
-                        return Task::done(DefaultViewMessage::ServerBrowserPanel(
-                            ServerBrowserPanelMessage::SelectServerEntry(None),
-                        ));
-                    }
                 },
                 Interaction::OpenURL(url) => {
                     if let Err(e) = opener::open(url) {

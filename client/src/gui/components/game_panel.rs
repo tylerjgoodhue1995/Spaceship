@@ -1,14 +1,11 @@
 use crate::{
-    assets::{POPPINS_BOLD_FONT, POPPINS_MEDIUM_FONT},
+    assets::POPPINS_BOLD_FONT,
     gui::{
         custom_widgets::heading_with_rule,
         style, subscriptions,
         views::{
             Action,
-            default::{
-                DefaultViewMessage,
-                Interaction::{self, SettingsPressed},
-            },
+            default::{DefaultViewMessage, Interaction::SettingsPressed},
         },
         widget::*,
     },
@@ -21,8 +18,7 @@ use iced::{
     Fill, Length, Padding, Task,
     alignment::{Horizontal, Vertical},
     widget::{
-        button, column, container, progress_bar, row, text, text::LineHeight, tooltip,
-        tooltip::Position,
+        button, column, container, progress_bar, row, text, tooltip, tooltip::Position,
     },
 };
 use std::{
@@ -38,7 +34,6 @@ pub enum GamePanelMessage {
     ProcessUpdate(ProcessUpdate),
     DownloadProgress(Box<Option<Progress>>),
     PlayPressed,
-    ServerBrowserServerChanged(Option<String>),
     StartUpdate,
 }
 
@@ -65,7 +60,6 @@ pub enum GamePanelState {
 pub struct GamePanelComponent {
     state: GamePanelState,
     download_progress: Option<Progress>,
-    selected_server_browser_address: Option<String>,
 }
 
 impl std::fmt::Debug for GamePanelState {
@@ -85,7 +79,6 @@ impl Default for GamePanelComponent {
         Self {
             state: GamePanelState::ReadyToPlay,
             download_progress: None,
-            selected_server_browser_address: None,
         }
     }
 }
@@ -93,11 +86,10 @@ impl Default for GamePanelComponent {
 impl GamePanelComponent {
     pub fn subscription(&self) -> iced::Subscription<GamePanelMessage> {
         match &self.state {
-            GamePanelState::Playing(profile) => subscriptions::process::stream(
-                profile.as_ref().clone(),
-                self.selected_server_browser_address.clone(),
-            )
-            .map(GamePanelMessage::ProcessUpdate),
+            GamePanelState::Playing(profile) => {
+                subscriptions::process::stream(profile.as_ref().clone(), None)
+                    .map(GamePanelMessage::ProcessUpdate)
+            },
             _ => iced::Subscription::none(),
         }
     }
@@ -296,10 +288,6 @@ impl GamePanelComponent {
                     (Some(GamePanelState::Retry), None)
                 },
             },
-            GamePanelMessage::ServerBrowserServerChanged(server_address) => {
-                self.selected_server_browser_address = server_address;
-                (None, None)
-            },
         };
 
         if let Some(state) = next_state {
@@ -496,23 +484,6 @@ impl GamePanelComponent {
                         .width(Length::Fill),
                 );
 
-                if let GamePanelState::ReadyToPlay = &self.state
-                    && self.selected_server_browser_address.is_some()
-                {
-                    launch_button = button(
-                        container(
-                            text("Connect to\nselected server")
-                                .font(POPPINS_BOLD_FONT)
-                                .line_height(LineHeight::Absolute(22.into()))
-                                .size(18)
-                                .align_x(Horizontal::Center)
-                                .align_y(Vertical::Center),
-                        )
-                        .center_x(Fill)
-                        .padding([10, 30]),
-                    )
-                };
-
                 launch_button = launch_button
                     .style(|theme, status| match &self.state {
                         GamePanelState::ReadyToPlay
@@ -526,7 +497,7 @@ impl GamePanelComponent {
                             style::button::download_update(theme, status)
                         },
                     })
-                    .width(Length::FillPortion(3))
+                    .width(Length::Fill)
                     .height(Length::Fixed(75.0));
 
                 if enabled {
@@ -535,41 +506,10 @@ impl GamePanelComponent {
                     );
                 }
 
-                let server_browser_button = button(
-                    column![]
-                        .align_x(Horizontal::Center)
-                        .padding([10, 0])
-                        .push(
-                            text("Server")
-                                .font(POPPINS_MEDIUM_FONT)
-                                .size(16)
-                                .align_x(Horizontal::Center)
-                                .align_y(Vertical::Center),
-                        )
-                        .push(
-                            text("Browser")
-                                .font(POPPINS_MEDIUM_FONT)
-                                .size(16)
-                                .align_x(Horizontal::Center)
-                                .align_y(Vertical::Center),
-                        ),
-                )
-                .width(Length::FillPortion(1))
-                .height(Length::Fixed(75.0))
-                .style(style::button::server_browser)
-                .on_press(DefaultViewMessage::Interaction(
-                    Interaction::ToggleServerBrowser,
-                ));
-
-                container(
-                    row![]
-                        .push(launch_button)
-                        .push(server_browser_button)
-                        .spacing(10),
-                )
-                .width(Length::Fill)
-                .align_y(Vertical::Center)
-                .into()
+                container(launch_button)
+                    .width(Length::Fill)
+                    .align_y(Vertical::Center)
+                    .into()
             },
         }
     }
