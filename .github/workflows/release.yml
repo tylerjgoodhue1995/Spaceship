@@ -37,8 +37,14 @@ jobs:
         if: runner.os == 'Windows'
         shell: powershell
         run: |
+          $ErrorActionPreference = 'Stop'
           choco install nsis --yes --no-progress
-          & "${env:ProgramFiles(x86)}\NSIS\makensis.exe" client/nsis/runehaven.nsi
+          Push-Location client/nsis
+          & "${env:ProgramFiles(x86)}\NSIS\makensis.exe" runehaven.nsi
+          $result = $LASTEXITCODE
+          Pop-Location
+          if ($result -ne 0) { exit $result }
+          Move-Item "client/nsis/Rune Haven Setup.exe" "Rune Haven Setup.exe"
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Package Rune Haven
