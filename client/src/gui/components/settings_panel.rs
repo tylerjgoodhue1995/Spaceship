@@ -31,7 +31,6 @@ use tracing::debug;
 pub enum SettingsPanelMessage {
     WgpuGraphicsDeviceChanged(profiles::WgpuDevice),
     LogLevelChanged(profiles::LogLevel),
-    ServerChanged(profiles::Server),
     ChannelChanged(Channel),
     WgpuBackendChanged(profiles::WgpuBackend),
     EnvVarsChanged(String),
@@ -61,21 +60,6 @@ impl SettingsPanelComponent {
                     async { Action::UpdateProfile(profile) },
                     DefaultViewMessage::Action,
                 ))
-            },
-            SettingsPanelMessage::ServerChanged(new_server) => {
-                tracing::debug!("new server selected {}", new_server);
-                let mut profile = active_profile.clone();
-                profile.server = new_server;
-                let profile2 = profile.clone();
-                Some(Task::batch(vec![
-                    Task::perform(
-                        async { Action::UpdateProfile(profile2) },
-                        DefaultViewMessage::Action,
-                    ),
-                    Task::done(DefaultViewMessage::GamePanel(
-                        GamePanelMessage::StartUpdate,
-                    )),
-                ]))
             },
             SettingsPanelMessage::ChannelChanged(new_channel) => {
                 tracing::debug!("new channel selected {}", new_channel);
@@ -313,33 +297,6 @@ impl SettingsPanelComponent {
             )
             .width(Length::FillPortion(1));
 
-        let server_picker = column![]
-            .spacing(5)
-            .push(
-                container(text("SERVER").size(10).style(style::text::light_grey))
-                    .padding(Padding::ZERO.left(3)),
-            )
-            .push(
-                tooltip(
-                    container(
-                        pick_list(profiles::SERVERS, Some(active_profile.server), |x| {
-                            DefaultViewMessage::SettingsPanel(
-                                SettingsPanelMessage::ServerChanged(x),
-                            )
-                        })
-                        .text_size(FONT_SIZE)
-                        .padding(PICK_LIST_PADDING)
-                        .width(Length::Fill),
-                    )
-                    .height(Length::Fixed(30.0)),
-                    text("The download server used for game downloads").size(14),
-                    Position::Bottom,
-                )
-                .style(style::container::tooltip)
-                .gap(5),
-            )
-            .width(Length::FillPortion(1));
-
         let help_link =
             "https://book.veloren.net/players/env-vars.html#veloren_assets_override"
                 .to_owned();
@@ -487,8 +444,7 @@ impl SettingsPanelComponent {
                 .spacing(10)
                 .align_y(Vertical::Bottom)
                 .push(graphics_mode)
-                .push(log_level)
-                .push(server_picker),
+                .push(log_level),
         );
 
         let third_row = container(row![].spacing(10).push(env_vars).push(channel_picker));

@@ -156,13 +156,6 @@ pub enum Server {
     Test,
 }
 
-pub static SERVERS: &[Server] = &[
-    Server::Runehaven,
-    Server::Production,
-    Server::Staging,
-    Server::Test,
-];
-
 #[derive(
     Debug,
     Default,
@@ -225,6 +218,10 @@ impl Profile {
                     Ok(profile) => {
                         // Rust type inference magic
                         let mut profile: Profile = profile;
+                        #[cfg(feature = "runehaven")]
+                        {
+                            profile.server = Server::Runehaven;
+                        }
                         profile.reload_wgpu_backends();
                         profile.reload_wgpu_devices();
                         profile
